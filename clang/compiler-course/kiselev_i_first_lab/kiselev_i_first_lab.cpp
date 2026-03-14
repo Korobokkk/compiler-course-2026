@@ -1,6 +1,6 @@
 #include "clang/AST/ASTConsumer.h"
-#include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/AST/DeclCXX.h"
+#include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Frontend/FrontendPluginRegistry.h"
 #include "llvm/Support/raw_ostream.h"
@@ -21,7 +21,11 @@ public:
     if (method->hasAttr<clang::OverrideAttr>())
       return true;
 
-    method->dump();
+    auto &DE = method->getASTContext().getDiagnostics();
+    unsigned diagID = DE.getCustomDiagID(
+        clang::DiagnosticsEngine::Warning,
+        "method '%0' overrides base method but is not marked 'override'");
+    DE.Report(method->getLocation(), diagID) << method->getName();
 
     return true;
   }
@@ -50,7 +54,7 @@ public:
   }
 };
 
-}
+} // namespace
 
 static clang::FrontendPluginRegistry::Add<OverrideAction>
-X("override_check", "Find overriding methods without override specifier");
+    X("override_check", "Find overriding methods without override specifier");

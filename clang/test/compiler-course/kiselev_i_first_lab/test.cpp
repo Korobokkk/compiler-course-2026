@@ -10,10 +10,9 @@ public:
   void foo() {}
 };
 
-// CHECK: CXXMethodDecl {{.*}} foo 'void ()'
-// CHECK: CompoundStmt
+// CHECK: {{.*}}warning: method 'foo' overrides base method but is not marked 'override'
 
-class Base2 { //good case
+class Base2 { // good case
 public:
   virtual void foo();
 };
@@ -23,7 +22,7 @@ public:
   void foo() override {}
 };
 
-// CHECK-NOT: foo 'void ()'
+// CHECK-NOT: warning: method 'foo' overrides base method but is not marked 'override'
 
 class A1 { // override with param
 public:
@@ -35,10 +34,7 @@ public:
   int sum(int a, int b) { return a + b; }
 };
 
-// CHECK: CXXMethodDecl {{.*}} sum 'int (int, int)'
-// CHECK: ParmVarDecl {{.*}} a 'int'
-// CHECK: ParmVarDecl {{.*}} b 'int'
-// CHECK: CompoundStmt
+// CHECK: {{.*}}warning: method 'sum' overrides base method but is not marked 'override'
 
 class A2 { // multiple inheritances
 public:
@@ -55,8 +51,8 @@ public:
   void foo() {}
 };
 
-// CHECK: CXXMethodDecl {{.*}} foo 'void ()'
-// CHECK: CXXMethodDecl {{.*}} foo 'void ()'
+// CHECK: {{.*}}warning: method 'foo' overrides base method but is not marked 'override'
+// CHECK: {{.*}}warning: method 'foo' overrides base method but is not marked 'override'
 
 class L1 { // intermediate class case
 public:
@@ -70,9 +66,9 @@ public:
   void f() {}
 };
 
-// CHECK: CXXMethodDecl {{.*}} f 'void ()'
+// CHECK: {{.*}}warning: method 'f' overrides base method but is not marked 'override'
 
-class A { //several subclass
+class A { // several subclass
 public:
   virtual void f();
 };
@@ -88,8 +84,8 @@ public:
   void g() {}
 };
 
-// CHECK: CXXMethodDecl {{.*}} f 'void ()'
-// CHECK: CXXMethodDecl {{.*}} g 'void ()'
+// CHECK: {{.*}}warning: method 'f' overrides base method but is not marked 'override'
+// CHECK: {{.*}}warning: method 'g' overrides base method but is not marked 'override'
 
 class Abstract {
 public:
@@ -101,4 +97,4 @@ public:
   void run() {}
 };
 
-// CHECK: CXXMethodDecl {{.*}} run 'void ()'
+// CHECK: {{.*}}warning: method 'run' overrides base method but is not marked 'override'
