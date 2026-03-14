@@ -21,7 +21,9 @@ public:
 
 class B1 : public A1 {
 public:
-  int sum(int a, int b) { return a + b; } // expected-warning {{method 'sum' overrides base method but is not marked 'override'}}
+  int sum(int a, int b) { 
+    return a + b;
+  } // expected-warning {{method 'sum' overrides base method but is not marked 'override'}}
 };
 
 class A2 {
