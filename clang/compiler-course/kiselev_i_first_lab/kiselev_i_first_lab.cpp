@@ -1,0 +1,56 @@
+#include "clang/AST/ASTConsumer.h"
+#include "clang/AST/RecursiveASTVisitor.h"
+#include "clang/AST/DeclCXX.h"
+#include "clang/Frontend/CompilerInstance.h"
+#include "clang/Frontend/FrontendPluginRegistry.h"
+#include "llvm/Support/raw_ostream.h"
+
+namespace {
+
+class OverrideVisitor final
+    : public clang::RecursiveASTVisitor<OverrideVisitor> {
+public:
+  bool VisitCXXMethodDecl(clang::CXXMethodDecl *method) {
+
+    if (!method->isVirtual())
+      return true;
+
+    if (method->size_overridden_methods() == 0)
+      return true;
+
+    if (method->hasAttr<clang::OverrideAttr>())
+      return true;
+
+    method->dump();
+
+    return true;
+  }
+};
+
+class OverrideConsumer final : public clang::ASTConsumer {
+public:
+  void HandleTranslationUnit(clang::ASTContext &context) override {
+    m_visitor.TraverseDecl(context.getTranslationUnitDecl());
+  }
+
+private:
+  OverrideVisitor m_visitor;
+};
+
+class OverrideAction final : public clang::PluginASTAction {
+public:
+  std::unique_ptr<clang::ASTConsumer>
+  CreateASTConsumer(clang::CompilerInstance &, llvm::StringRef) override {
+    return std::make_unique<OverrideConsumer>();
+  }
+
+  bool ParseArgs(const clang::CompilerInstance &,
+                 const std::vector<std::string> &) override {
+    return true;
+  }
+};
+
+}
+
+static clang::FrontendPluginRegistry::Add<OverrideAction>
+X("override_check", "Find overriding methods without override specifier");
