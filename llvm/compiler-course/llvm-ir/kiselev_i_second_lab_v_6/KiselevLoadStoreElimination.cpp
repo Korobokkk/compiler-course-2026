@@ -31,14 +31,14 @@ struct TrackedCell {
 
 class LSEPass : public PassInfoMixin<LSEPass> {
 
-  using MemoryMap = DenseMap<Value*, TrackedCell>;
+  using MemoryMap = DenseMap<Value *, TrackedCell>;
 
 public:
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &) {
     bool Changed = false;
     for (BasicBlock &BB : F) {
       MemoryMap Memory;
-      SmallVector<Instruction*, 16> ToErase;
+      SmallVector<Instruction *, 16> ToErase;
 
       for (Instruction &I : BB) {
         if (processLoad(I, Memory, ToErase))
@@ -55,16 +55,14 @@ public:
       }
     }
 
-    return Changed ? PreservedAnalyses::none()
-                   : PreservedAnalyses::all();
+    return Changed ? PreservedAnalyses::none() : PreservedAnalyses::all();
   }
 
   static bool isRequired() { return true; }
 
 private:
-  bool processLoad(Instruction &I,
-                   MemoryMap &Memory,
-                   SmallVector<Instruction*, 16> &ToErase) {
+  bool processLoad(Instruction &I, MemoryMap &Memory,
+                   SmallVector<Instruction *, 16> &ToErase) {
 
     auto *LI = dyn_cast<LoadInst>(&I);
     if (!LI)
@@ -89,15 +87,14 @@ private:
     return false;
   }
 
-  bool processStore(Instruction &I,
-                    MemoryMap &Memory,
-                    SmallVector<Instruction*, 16> &ToErase) {
+  bool processStore(Instruction &I, MemoryMap &Memory,
+                    SmallVector<Instruction *, 16> &ToErase) {
 
     auto *SI = dyn_cast<StoreInst>(&I);
-    if (!SI){
+    if (!SI) {
       return false;
     }
-    if (SI->isVolatile() || SI->isAtomic()){
+    if (SI->isVolatile() || SI->isAtomic()) {
       return true;
     }
     invalidate(I, Memory);
@@ -136,22 +133,17 @@ private:
 
 } // namespace
 
-
-extern "C" LLVM_ATTRIBUTE_WEAK PassPluginLibraryInfo
-llvmGetPassPluginInfo() {
-  return {
-      LLVM_PLUGIN_API_VERSION, "KiselevLoadStoreElimination", "0.1",
-      [](PassBuilder &PB) {
-        PB.registerPipelineParsingCallback(
-            [](StringRef Name,
-               FunctionPassManager &FPM,
-               ArrayRef<PassBuilder::PipelineElement>) {
-
-              if (Name == "kiselev-load-store-elimination") {
-                FPM.addPass(LSEPass());
-                return true;
-              }
-              return false;
-            });
-      }};
+extern "C" LLVM_ATTRIBUTE_WEAK PassPluginLibraryInfo llvmGetPassPluginInfo() {
+  return {LLVM_PLUGIN_API_VERSION, "KiselevLoadStoreElimination", "0.1",
+          [](PassBuilder &PB) {
+            PB.registerPipelineParsingCallback(
+                [](StringRef Name, FunctionPassManager &FPM,
+                   ArrayRef<PassBuilder::PipelineElement>) {
+                  if (Name == "kiselev-load-store-elimination") {
+                    FPM.addPass(LSEPass());
+                    return true;
+                  }
+                  return false;
+                });
+          }};
 }
