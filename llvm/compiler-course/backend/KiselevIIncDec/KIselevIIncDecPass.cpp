@@ -19,7 +19,7 @@ public:
     bool Changed = false;
 
     for (auto &MBB : MF) {
-      for (auto I = MBB.begin(); I != MBB.end(); ) {
+      for (auto I = MBB.begin(); I != MBB.end();) {
         MachineInstr &MI = *I;
 
         int Delta = getDelta(MI);
@@ -80,7 +80,6 @@ public:
   }
 
 private:
-
   int getDelta(const MachineInstr &MI) {
     switch (MI.getOpcode()) {
     case X86::INC8r:
@@ -100,25 +99,28 @@ private:
     }
   }
 
-  bool sameWidth(unsigned A, unsigned B) {
-    return getWidth(A) == getWidth(B);
-  }
+  bool sameWidth(unsigned A, unsigned B) { return getWidth(A) == getWidth(B); }
 
   unsigned getWidth(unsigned Opc) {
     switch (Opc) {
     case X86::INC8r:
-    case X86::DEC8r: return 8;
+    case X86::DEC8r:
+      return 8;
 
     case X86::INC16r:
-    case X86::DEC16r: return 16;
+    case X86::DEC16r:
+      return 16;
 
     case X86::INC32r:
-    case X86::DEC32r: return 32;
+    case X86::DEC32r:
+      return 32;
 
     case X86::INC64r:
-    case X86::DEC64r: return 64;
+    case X86::DEC64r:
+      return 64;
 
-    default: return 0;
+    default:
+      return 0;
     }
   }
 
@@ -144,5 +146,5 @@ char IncDecFoldPass::ID = 0;
 
 } // namespace
 
-static RegisterPass<IncDecFoldPass>
-    X("kiselev-inc-dec-pass", "INC/DEC folding", false, false);
+static RegisterPass<IncDecFoldPass> X("kiselev-inc-dec-pass", "INC/DEC folding",
+                                      false, false);
