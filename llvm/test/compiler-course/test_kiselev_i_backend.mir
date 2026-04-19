@@ -7,10 +7,10 @@ body: |
   bb.0:
     liveins: $al, $ax, $eax, $rax
 
-    ; CHECK-DAG: ADD8ri
-    ; CHECK-DAG: ADD16ri
-    ; CHECK-DAG: ADD32ri
-    ; CHECK-DAG: ADD64ri32
+    ; CHECK-DAG: ADD8ri {{.*}}$al, 1
+    ; CHECK-DAG: ADD16ri {{.*}}$ax, 1
+    ; CHECK-DAG: ADD32ri {{.*}}$eax, 1
+    ; CHECK-DAG: ADD64ri32 {{.*}}$rax, 1
 
     renamable $al = INC8r renamable $al, implicit-def $eflags
     renamable $ax = INC16r renamable $ax, implicit-def $eflags
@@ -24,7 +24,7 @@ body: |
   bb.0:
     liveins: $eax
 
-    ; CHECK: SUB32ri {{.*}} 1
+    ; CHECK: SUB32ri {{.*}}$eax, 1
 
     renamable $eax = DEC32r renamable $eax, implicit-def $eflags
     RET64
@@ -35,7 +35,7 @@ body: |
   bb.0:
     liveins: $eax
 
-    ; CHECK: ADD32ri {{.*}} 3
+    ; CHECK: ADD32ri {{.*}}$eax, 3
 
     renamable $eax = INC32r renamable $eax, implicit-def $eflags
     renamable $eax = INC32r renamable $eax, implicit-def $eflags
@@ -48,7 +48,7 @@ body: |
   bb.0:
     liveins: $eax
 
-    ; CHECK: ADD32ri {{.*}} 2
+    ; CHECK: ADD32ri {{.*}}$eax, 2
 
     renamable $eax = INC32r renamable $eax, implicit-def $eflags
     renamable $eax = INC32r renamable $eax, implicit-def $eflags
@@ -77,8 +77,8 @@ body: |
   bb.0:
     liveins: $eax, $ebx
 
-    ; CHECK-DAG: ADD32ri
-    ; CHECK-DAG: ADD32ri
+    ; CHECK-DAG: ADD32ri {{.*}}$eax, 1
+    ; CHECK-DAG: ADD32ri {{.*}}$ebx, 1
 
     renamable $eax = INC32r renamable $eax, implicit-def $eflags
     renamable $ebx = INC32r renamable $ebx, implicit-def $eflags
@@ -90,8 +90,8 @@ body: |
   bb.0:
     liveins: $eax, $rax
 
-    ; CHECK: ADD32ri
-    ; CHECK: ADD64ri32
+    ; CHECK: ADD32ri {{.*}}$eax, 1
+    ; CHECK: ADD64ri32 {{.*}}$rax, 1
 
     renamable $eax = INC32r renamable $eax, implicit-def $eflags
     renamable $rax = INC64r renamable $rax, implicit-def $eflags
@@ -103,8 +103,9 @@ body: |
   bb.0:
     liveins: $eax
 
-    ; CHECK-DAG: ADD32ri {{.*}} 1
-    ; CHECK-DAG: ADD32ri {{.*}} 1
+    ; CHECK: ADD32ri {{.*}}$eax, 1
+    ; CHECK: TEST32rr
+    ; CHECK: ADD32ri {{.*}}$eax, 1
 
     renamable $eax = INC32r renamable $eax, implicit-def $eflags
     TEST32rr renamable $eax, renamable $eax, implicit-def $eflags
@@ -117,6 +118,7 @@ body: |
   bb.0:
     liveins: $eax
 
-    ; CHECK: ADD32rr
+    ; CHECK: ADD32rr {{.*}}$eax, {{.*}}$eax
+
     renamable $eax = ADD32rr renamable $eax, renamable $eax, implicit-def $eflags
     RET64
