@@ -1,27 +1,28 @@
-#include "mlir/Dialect/SCF/IR/SCF.h"
 #include "mlir/Dialect/Func/IR/FuncOps.h"
-// #include "mlir/Dialect/LLVMIR/LLVMDialect.h"
+#include "mlir/Dialect/SCF/IR/SCF.h"
 #include "mlir/IR/IRMapping.h"
 #include "mlir/IR/PatternMatch.h"
+#include "mlir/Interfaces/SideEffectInterfaces.h"
 #include "mlir/Pass/Pass.h"
 #include "mlir/Tools/Plugins/PassPlugin.h"
-#include "mlir/Interfaces/SideEffectInterfaces.h"
-// #include "llvm/Support/raw_ostream.h"
 
 using namespace mlir;
 
 namespace {
-class MyLoopingPass : public PassWrapper<MyLoopingPass, OperationPass<ModuleOp>> {
+class MyLoopingPass
+    : public PassWrapper<MyLoopingPass, OperationPass<ModuleOp>> {
 public:
   StringRef getArgument() const final { return "kiselev-cycle-merging"; }
-  StringRef getDescription() const final { return "My plugin with cycle merging"; }
+  StringRef getDescription() const final {
+    return "My plugin with cycle merging";
+  }
 
   void runOnOperation() override {
     ModuleOp module = getOperation();
 
     module.walk([&](func::FuncOp func) {
       for (Block &block : func) {
-        for (auto it = block.begin(); it != block.end(); ) {
+        for (auto it = block.begin(); it != block.end();) {
           auto firstLoop = dyn_cast<scf::ForOp>(*it);
           if (!firstLoop) {
             ++it;
@@ -41,7 +42,7 @@ public:
             ++it;
             continue;
           }
-          
+
           bool flagDeps = false;
 
           firstLoop.getBody()->walk([&](Operation *op) {
@@ -73,18 +74,15 @@ public:
 
           OpBuilder builder(firstLoop);
           auto fusedLoop = builder.create<scf::ForOp>(
-              firstLoop.getLoc(),
-              firstLoop.getLowerBound(),
-              firstLoop.getUpperBound(),
-              firstLoop.getStep());
+              firstLoop.getLoc(), firstLoop.getLowerBound(),
+              firstLoop.getUpperBound(), firstLoop.getStep());
 
           Block *fusedBody = fusedLoop.getBody();
           Block *firstBody = firstLoop.getBody();
           Block *secondBody = secondLoop.getBody();
 
           IRMapping mapping; // клон операций циклов
-          mapping.map(firstLoop.getInductionVar(),
-                      fusedLoop.getInductionVar());
+          mapping.map(firstLoop.getInductionVar(), fusedLoop.getInductionVar());
           mapping.map(secondLoop.getInductionVar(),
                       fusedLoop.getInductionVar());
 
